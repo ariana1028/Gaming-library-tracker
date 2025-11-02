@@ -1,0 +1,10 @@
+import {Col, Container, Row} from 'react-bootstrap';
+import Navbar from '../components/NavBar';
+
+export default function HomePage() {
+    return <div>
+        <Navbar />
+        <h1>Gaming Library Tracker</h1>
+        <p>description...</p>
+    </div>
+}
