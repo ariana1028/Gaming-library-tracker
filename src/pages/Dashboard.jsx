@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { fetchGames } from "../services/rawgApi";
-import { useNavigate } from "react-router-dom";
+import { fetchGames, searchGames } from "../services/rawgApi";
+import { useNavigate , useSearchParams } from "react-router-dom";
 import Navbar from "../components/NavBar";
 
 export default function Dashboard() {
@@ -10,32 +10,39 @@ export default function Dashboard() {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalGames, setTotalGames] = useState(0);
+    
+    const [searchParams] = useSearchParams();
+    const searchQuery = searchParams.get("search") || "";
     const navigate = useNavigate();
-
     const pageSize = 40;
     const maxButtons = 10;
 
     useEffect(() => {
         const loadGames = async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await fetchGames(page, pageSize);
-            setGames(data.results || []);
-            setTotalGames(data.count || 0);
+            setLoading(true);
+            setError(null);
+            try {
+                let data;
+                if (searchQuery) {
+                    data = await searchGames(searchQuery, page, pageSize);
+                } else {
+                    data = await fetchGames(page, pageSize);
+                }
 
-            const pages = data.count ? Math.ceil(data.count / pageSize) : 1;
-            setTotalPages(pages);
-        } catch (err) {
-            console.error(err);
-            setError("Failed to load games");
-        } finally {
-            setLoading(false);
-        }
+                setGames(data.results || []);
+                setTotalGames(data.count || 0);
+                const pages = data.count ? Math.ceil(data.count / pageSize) : 1;
+                setTotalPages(pages);
+            } catch (err) {
+                console.error(err);
+                setError("Failed to load games");
+            } finally {
+                setLoading(false);
+            }
         };
 
         loadGames();
-    }, [page]);
+    }, [page, searchQuery]);
 
     const handlePrev = () => {
         if (page > 1) setPage(page - 1);
@@ -63,12 +70,14 @@ export default function Dashboard() {
     if (error) return <p>{error}</p>;
 
     return (
-        <div style={{ backgroundColor: "#0b1b2b", minHeight: "100vh", color: "white" }}>
+        <div style={{ backgroundColor: "#0b1b2b", minHeight: "100vh", color: "white"}}>
         <Navbar />
 
         <div style={{ padding: "20px", paddingBottom: "10px"}}>
             <h1>Game Dashboard</h1>
+            <div style={{paddingTop: "10px"}}>
             <p>Total games: {totalGames.toLocaleString()}</p>
+            </div>
 
             <div
             style={{

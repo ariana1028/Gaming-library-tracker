@@ -11,8 +11,18 @@ export const fetchGames = (page = 1, pageSize = 20) => {
     });
 }
 
-export const searchGames = async (query) => {
-
+export const searchGames = async (query, page = 1, pageSize = 20) => {
+    try {
+        const res = await fetch(
+            `${BASE_URL}/games?key=${API_KEY}&search=${encodeURIComponent(query)}&page=${page}&page_size=${pageSize}`
+        );
+        if (!res.ok) throw new Error(`Failed to search games (status: ${res.status})`);
+        const data = await res.json();
+        return data;
+    } catch (err) {
+        console.error("Error searching games:", err);
+        throw err;
+    }
 }
 
 export const getGameDetails = async (id) => {
@@ -34,13 +44,5 @@ export const filterByPlatform = async (platform) => {
 }
 
 export const filterByGenre = async (genre) => {
-
-}
-
-export const getGenre = async () => {
-
-}
-
-export const getPlatforms = async () => {
 
 }

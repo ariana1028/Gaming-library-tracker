@@ -54,6 +54,7 @@ export default function GameDetail() {
                 width: "250px",
                 height: "300px",
                 objectFit: "cover",
+                objectPosition: "center",
                 borderRadius: "8px",
                 backgroundColor: "#222",
                 }}
