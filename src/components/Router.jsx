@@ -4,6 +4,7 @@ import SignUp from "../pages/SignUp";
 import NoMatch from "../pages/NoMatch";
 import HomePage from "../pages/HomePage";
 import Dashboard from "../pages/Dashboard"
+import GameDetail from "../pages/GameDetail";
 
 export default function Router() {
     return (
@@ -14,6 +15,7 @@ export default function Router() {
                 <Route path="login" element={<Login />} />
                 <Route path="signup" element={<SignUp />} />
                 <Route path="dashboard" element={<Dashboard />} />
+                <Route path="gamedetail/:id" element={<GameDetail />} />
                 <Route path="*" element={<NoMatch />} />
             </Route>
         </Routes>
