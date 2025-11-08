@@ -5,6 +5,7 @@ import NoMatch from "../pages/NoMatch";
 import HomePage from "../pages/HomePage";
 import Dashboard from "../pages/Dashboard"
 import GameDetail from "../pages/GameDetail";
+import Profile from "../pages/Profile";
 
 export default function Router() {
     return (
@@ -16,6 +17,7 @@ export default function Router() {
                 <Route path="signup" element={<SignUp />} />
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="gamedetail/:id" element={<GameDetail />} />
+                <Route path="profile" element={<Profile />} />
                 <Route path="*" element={<NoMatch />} />
             </Route>
         </Routes>
