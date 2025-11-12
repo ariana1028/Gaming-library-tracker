@@ -23,8 +23,16 @@ export default function GameDetail() {
         loadGame();
     }, [id]);
 
-    if (loading) return <p>Loading game details...</p>;
-    if (!game) return <p>Game not found.</p>;
+    if (loading) return (
+        <div style={{ backgroundColor: "#0b1b2b", color: "white", minHeight: "100vh", padding: "10px"}}>
+        <p>Loading game details...</p>
+        </div>
+    )
+    if (!game) return (
+        <div style={{ backgroundColor: "#0b1b2b", color: "white", minHeight: "100vh", padding: "10px"}}>
+            <p>Game not found.</p>
+        </div>
+    )
 
     const maxLength = 400;
     const isLong = game.description_raw?.length > maxLength;

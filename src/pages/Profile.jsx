@@ -23,7 +23,7 @@ export default function Profile() {
 
     if (!user) {
         return (
-            <div style={{ padding: "50px", color: "white", backgroundColor: "#0b1b2b", minHeight: "100vh" }}>
+            <div style={{color: "white", backgroundColor: "#0b1b2b", minHeight: "100vh" }}>
                 <Navbar />
                 <p>Loading profile...</p>
             </div>

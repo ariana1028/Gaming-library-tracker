@@ -66,7 +66,11 @@ export default function Dashboard() {
         return pages;
     };
 
-    if (loading) return <p>Loading games...</p>;
+    if (loading) return (
+        <div style={{ backgroundColor: "#0b1b2b", color: "white", minHeight: "100vh", padding: "10px"}}>
+        <p>Loading games...</p>
+        </div>
+    )
     if (error) return <p>{error}</p>;
 
     return (
