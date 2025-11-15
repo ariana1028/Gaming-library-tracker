@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { getGameDetails } from "../services/rawgApi";
 import Navbar from "../components/NavBar";
@@ -14,6 +14,14 @@ export default function GameDetail() {
     const [user, setUser] = useState(null);
     const [isSaved, setIsSaved] = useState(false);
     const [saving, setSaving] = useState(false);
+
+    const [showModal, setShowModal] = useState(false);
+    const [status, setStatus] = useState("");
+    const [hours, setHours] = useState("");
+
+    const imgRef = useRef(null);
+    const descRef = useRef(null);
+    const [needsExpand, setNeedsExpand] = useState(false);
 
     // Load game
     useEffect(() => {
@@ -40,13 +48,12 @@ export default function GameDetail() {
         fetchUser();
     }, []);
 
-    // Check if game is saved (runs when both user and game are loaded)
+    // Check if game is saved
     useEffect(() => {
         const checkSaved = async () => {
         if (!user || !game) return;
         try {
             const savedGames = await getSavedGames(user.id);
-            // Convert both to numbers for comparison
             const found = savedGames.some(g => Number(g.game_id) === Number(game.id));
             setIsSaved(found);
         } catch (err) {
@@ -56,13 +63,35 @@ export default function GameDetail() {
         checkSaved();
     }, [user, game]);
 
+    // Check if description needs expand button
+    useEffect(() => {
+        const checkHeight = () => {
+            if (imgRef.current && descRef.current && !expanded) {
+                const imgHeight = imgRef.current.clientHeight;
+                const descHeight = descRef.current.scrollHeight;
+                // Account for title height (~60px)
+                setNeedsExpand(descHeight > imgHeight - 60);
+            }
+        };
+
+        window.addEventListener("resize", checkHeight);
+        // Use setTimeout to ensure DOM is fully rendered
+        setTimeout(checkHeight, 100);
+        return () => window.removeEventListener("resize", checkHeight);
+    }, [game, expanded]);
+
     const handleSaveGame = async () => {
         if (!user) return;
         setSaving(true);
         try {
-        // Ensure game.id is stored as a number
-        await saveGame(user.id, Number(game.id), { name: game.name, image: game.background_image });
+        await saveGame(user.id, Number(game.id), {
+            name: game.name,
+            image: game.background_image,
+            status: status || null,
+            hours: hours || null
+        });
         setIsSaved(true);
+        setShowModal(false);
         } catch (err) {
         console.error(err);
         alert("Failed to save game.");
@@ -74,10 +103,6 @@ export default function GameDetail() {
     if (loading) return <div style={{ backgroundColor: "#0b1b2b", color: "white", minHeight: "100vh", padding: "10px" }}><p>Loading game details...</p></div>;
     if (!game) return <div style={{ backgroundColor: "#0b1b2b", color: "white", minHeight: "100vh", padding: "10px" }}><p>Game not found.</p></div>;
 
-    const maxLength = 400;
-    const isLong = game.description_raw?.length > maxLength;
-    const displayedText = expanded ? game.description_raw : game.description_raw?.slice(0, maxLength) + (isLong ? "..." : "");
-
     const genres = game.genres?.map(g => g.name).join(", ") || "N/A";
     const platforms = game.platforms?.map(p => p.platform.name).join(", ") || "N/A";
 
@@ -87,9 +112,14 @@ export default function GameDetail() {
         <div style={{ padding: "40px 60px", paddingLeft: "70px", paddingTop: "50px" }}>
             <div style={{ display: "flex", gap: "30px", alignItems: "flex-start", marginBottom: "30px" }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
-                <img src={game.background_image} alt={game.name} style={{ width: "250px", height: "300px", objectFit: "cover", objectPosition: "center", borderRadius: "8px", backgroundColor: "#222" }} />
+                <img 
+                    ref={imgRef}
+                    src={game.background_image} 
+                    alt={game.name} 
+                    style={{ width: "250px", height: "300px", objectFit: "cover", objectPosition: "center", borderRadius: "8px", backgroundColor: "#222" }} 
+                />
                 <button
-                onClick={handleSaveGame}
+                onClick={() => setShowModal(true)}
                 disabled={!user || isSaved}
                 style={{
                     padding: "8px 16px",
@@ -101,23 +131,35 @@ export default function GameDetail() {
                     fontWeight: "bold",
                 }}
                 >
-                {user ? (saving ? "Saving..." : isSaved ? "Saved" : "Save Game") : "Log in to save game"}
+                {user ? (isSaved ? "Saved" : "Save Game") : "Log in to save game"}
                 </button>
             </div>
 
             <div>
                 <h2 style={{ marginBottom: "10px", fontSize: "40px" }}>{game.name}</h2>
-                <p style={{ maxWidth: "900px", lineHeight: "1.6", fontSize: "18px", paddingTop: "10px" }}>
-                {displayedText}{" "}
-                {isLong && (
+                <div 
+                    ref={descRef}
+                    style={{ 
+                        maxWidth: "900px", 
+                        lineHeight: "1.6", 
+                        fontSize: "18px", 
+                        paddingTop: "10px",
+                        maxHeight: expanded ? "none" : "240px",
+                        overflow: "hidden"
+                    }}
+                >
+                    <p style={{ margin: 0 }}>
+                        {game.description_raw}
+                    </p>
+                </div>
+                {needsExpand && (
                     <span
-                    onClick={() => setExpanded(!expanded)}
-                    style={{ color: "#4db8ff", cursor: "pointer", fontWeight: "bold", marginLeft: "5px" }}
+                        onClick={() => setExpanded(!expanded)}
+                        style={{ color: "#4db8ff", cursor: "pointer", fontWeight: "bold", marginLeft: "5px" }}
                     >
-                    {expanded ? "Show less" : "Show more"}
+                        {expanded ? "Show less" : "... Show more"}
                     </span>
                 )}
-                </p>
             </div>
             </div>
 
@@ -127,6 +169,47 @@ export default function GameDetail() {
             <p>🕹️ Platforms: {platforms}</p>
             </div>
         </div>
+
+        {/* Modal */}
+        {showModal && (
+            <div style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000
+            }}>
+            <div style={{ backgroundColor: "#3f454bff", padding: "20px", borderRadius: "8px", width: "320px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <h3>Save Game</h3>
+                <button onClick={() => setShowModal(false)} style={{ cursor: "pointer", fontSize: "18px", border: "none", background: "transparent", color: "white" }}>✕</button>
+                </div>
+
+                <div style={{ marginTop: "10px" }}>
+                <label>Status:</label>
+                <select value={status} onChange={(e) => setStatus(e.target.value)} style={{ width: "100%", margin: "5px 0 15px", color: "black" }}>
+                    <option value="">Select status (optional)</option>
+                    <option value="Playing">Playing</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Want to play">Want to play</option>
+                </select>
+
+                <label>Hours played:</label>
+                <input type="number" value={hours} onChange={(e) => setHours(e.target.value)} placeholder="Optional" style={{ width: "100%", margin: "5px 0 15px", color: "black" }} />
+
+                <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+                    <button onClick={handleSaveGame} style={{ padding: "6px 12px", fontWeight: "bold" }}>{saving ? "Saving..." : "Save"}</button>
+                    <button onClick={() => setShowModal(false)} style={{ padding: "6px 12px" }}>Cancel</button>
+                </div>
+                </div>
+            </div>
+            </div>
+        )}
         </div>
     );
 }
