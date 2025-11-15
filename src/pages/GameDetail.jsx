@@ -3,7 +3,24 @@ import { useParams } from "react-router-dom";
 import { getGameDetails } from "../services/rawgApi";
 import Navbar from "../components/NavBar";
 import { saveGame, getSavedGames } from "../services/supabaseGames";
+import { addReview, updateReview } from "../services/supabaseReviews";
 import { supabase } from "../services/supabaseClient";
+
+const inputStyle = {
+    display: "block",
+    margin: "5px 0 15px",
+    padding: "8px",
+    width: "100%",
+    borderRadius: "5px",
+    border: "none",
+};
+
+const buttonStyle = {
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer",
+    padding: "8px 16px", 
+};
 
 export default function GameDetail() {
     const { id } = useParams();
@@ -18,6 +35,8 @@ export default function GameDetail() {
     const [showModal, setShowModal] = useState(false);
     const [status, setStatus] = useState("");
     const [hours, setHours] = useState("");
+    const [rating, setRating] = useState("");
+    const [reviewText, setReviewText] = useState("");
 
     const imgRef = useRef(null);
     const descRef = useRef(null);
@@ -69,34 +88,52 @@ export default function GameDetail() {
             if (imgRef.current && descRef.current && !expanded) {
                 const imgHeight = imgRef.current.clientHeight;
                 const descHeight = descRef.current.scrollHeight;
-                // Account for title height (~60px)
                 setNeedsExpand(descHeight > imgHeight - 60);
             }
         };
 
         window.addEventListener("resize", checkHeight);
-        // Use setTimeout to ensure DOM is fully rendered
         setTimeout(checkHeight, 100);
         return () => window.removeEventListener("resize", checkHeight);
     }, [game, expanded]);
 
     const handleSaveGame = async () => {
         if (!user) return;
+
+        // Validate: if review text is entered, rating must be provided
+        if (reviewText.trim() && !rating) {
+            alert("Please provide a rating if you want to leave a review.");
+            return;
+        }
+
         setSaving(true);
         try {
-        await saveGame(user.id, Number(game.id), {
-            name: game.name,
-            image: game.background_image,
-            status: status || null,
-            hours: hours || null
-        });
-        setIsSaved(true);
-        setShowModal(false);
+            // Save the game
+            await saveGame(user.id, Number(game.id), {
+                name: game.name,
+                image: game.background_image,
+                status: status || null,
+                hours: hours || null
+            });
+
+            // Save review if rating is provided
+            if (rating) {
+                await addReview(user.id, Number(game.id), Number(rating), reviewText.trim() || null);
+            }
+
+            setIsSaved(true);
+            setShowModal(false);
+            
+            // Reset form
+            setStatus("");
+            setHours("");
+            setRating("");
+            setReviewText("");
         } catch (err) {
-        console.error(err);
-        alert("Failed to save game.");
+            console.error(err);
+            alert("Failed to save game or review.");
         } finally {
-        setSaving(false);
+            setSaving(false);
         }
     };
 
@@ -109,7 +146,12 @@ export default function GameDetail() {
     return (
         <div style={{ backgroundColor: "#0b1b2b", color: "white", minHeight: "100vh" }}>
         <Navbar />
-        <div style={{ padding: "40px 60px", paddingLeft: "70px", paddingTop: "50px" }}>
+        <div style={{ 
+            padding: "40px 60px", 
+            paddingTop: "50px",
+            maxWidth: "1400px",
+            margin: "0 auto"
+        }}>
             <div style={{ display: "flex", gap: "30px", alignItems: "flex-start", marginBottom: "30px" }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
                 <img 
@@ -163,7 +205,7 @@ export default function GameDetail() {
             </div>
             </div>
 
-            <div style={{ display: "flex", fontSize: "16px", marginBottom: "40px", gap: "30px", paddingLeft: "70px" }}>
+            <div style={{ display: "flex", fontSize: "16px", marginBottom: "40px", gap: "30px" }}>
             <p>⭐ Rate: {game.rating}</p>
             <div style={{ paddingLeft: "85px", paddingRight: "20px" }}><p>🎭 Genre: {genres}</p></div>
             <p>🕹️ Platforms: {platforms}</p>
@@ -184,15 +226,22 @@ export default function GameDetail() {
             alignItems: "center",
             zIndex: 1000
             }}>
-            <div style={{ backgroundColor: "#3f454bff", padding: "20px", borderRadius: "8px", width: "320px" }}>
+            <div style={{ 
+                backgroundColor: "#3f454bff", 
+                padding: "20px", 
+                borderRadius: "8px", 
+                width: "500px",
+                maxHeight: "90vh",
+                overflowY: "auto"
+            }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <h3>Save Game</h3>
+                <h3 style={{ margin: 0 }}>Save Game</h3>
                 <button onClick={() => setShowModal(false)} style={{ cursor: "pointer", fontSize: "18px", border: "none", background: "transparent", color: "white" }}>✕</button>
                 </div>
 
-                <div style={{ marginTop: "10px" }}>
+                <div style={{ marginTop: "15px" }}>
                 <label>Status:</label>
-                <select value={status} onChange={(e) => setStatus(e.target.value)} style={{ width: "100%", margin: "5px 0 15px", color: "black" }}>
+                <select value={status} onChange={(e) => setStatus(e.target.value)} style={inputStyle}>
                     <option value="">Select status (optional)</option>
                     <option value="Playing">Playing</option>
                     <option value="Completed">Completed</option>
@@ -200,11 +249,54 @@ export default function GameDetail() {
                 </select>
 
                 <label>Hours played:</label>
-                <input type="number" value={hours} onChange={(e) => setHours(e.target.value)} placeholder="Optional" style={{ width: "100%", margin: "5px 0 15px", color: "black" }} />
+                <input 
+                    type="number" 
+                    value={hours} 
+                    onChange={(e) => setHours(e.target.value)} 
+                    placeholder="Optional" 
+                    style={inputStyle} 
+                />
 
-                <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
-                    <button onClick={handleSaveGame} style={{ padding: "6px 12px", fontWeight: "bold" }}>{saving ? "Saving..." : "Save"}</button>
-                    <button onClick={() => setShowModal(false)} style={{ padding: "6px 12px" }}>Cancel</button>
+                <label>Rating (1-5):</label>
+                <select 
+                    value={rating} 
+                    onChange={(e) => setRating(e.target.value)} 
+                    style={inputStyle}
+                >
+                    <option value="">No rating (optional)</option>
+                    <option value="1">1 - Poor</option>
+                    <option value="2">2 - Fair</option>
+                    <option value="3">3 - Good</option>
+                    <option value="4">4 - Very Good</option>
+                    <option value="5">5 - Excellent</option>
+                </select>
+
+                <label>Review:</label>
+                <textarea
+                    value={reviewText}
+                    onChange={(e) => setReviewText(e.target.value)}
+                    placeholder="Write your review (optional)"
+                    style={inputStyle}
+                />
+                {reviewText.trim() && !rating && (
+                    <p style={{ color: "#ff6b6b", fontSize: "14px"}}>
+                        Please select a rating to submit a review
+                    </p>
+                )}
+
+                <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "15px" }}>
+                    <button 
+                        onClick={handleSaveGame} 
+                        style={{...buttonStyle, fontWeight: "bold"}}
+                    >
+                        {saving ? "Saving..." : "Save"}
+                    </button>
+                    <button 
+                        onClick={() => setShowModal(false)} 
+                        style={buttonStyle}
+                    >
+                        Cancel
+                    </button>
                 </div>
                 </div>
             </div>
