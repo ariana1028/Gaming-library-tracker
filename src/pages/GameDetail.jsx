@@ -31,12 +31,18 @@ export default function GameDetail() {
     const [user, setUser] = useState(null);
     const [isSaved, setIsSaved] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [savedGameData, setSavedGameData] = useState(null);
 
     const [showModal, setShowModal] = useState(false);
     const [status, setStatus] = useState("");
     const [hours, setHours] = useState("");
     const [rating, setRating] = useState("");
     const [reviewText, setReviewText] = useState("");
+
+    const [editMode, setEditMode] = useState(false);
+    const [editStatus, setEditStatus] = useState("");
+    const [editHours, setEditHours] = useState("");
+    const [updating, setUpdating] = useState(false);
 
     const imgRef = useRef(null);
     const descRef = useRef(null);
@@ -73,8 +79,13 @@ export default function GameDetail() {
         if (!user || !game) return;
         try {
             const savedGames = await getSavedGames(user.id);
-            const found = savedGames.some(g => Number(g.game_id) === Number(game.id));
-            setIsSaved(found);
+            const found = savedGames.find(g => Number(g.game_id) === Number(game.id));
+            if (found) {
+                setIsSaved(true);
+                setSavedGameData(found);
+                setEditStatus(found.save_data?.status || "");
+                setEditHours(found.save_data?.hours || "");
+            }
         } catch (err) {
             console.error(err);
         }
@@ -122,6 +133,17 @@ export default function GameDetail() {
             }
 
             setIsSaved(true);
+            
+            // Update saved game data
+            setSavedGameData({
+                save_data: {
+                    status: status || null,
+                    hours: hours || null
+                }
+            });
+            setEditStatus(status || "");
+            setEditHours(hours || "");
+            
             setShowModal(false);
             
             // Reset form
@@ -134,6 +156,33 @@ export default function GameDetail() {
             alert("Failed to save game or review.");
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleUpdateStatus = async () => {
+        if (!user) return;
+        
+        setUpdating(true);
+        try {
+            await saveGame(user.id, Number(game.id), {
+                name: game.name,
+                image: game.background_image,
+                status: editStatus || null,
+                hours: editHours || null
+            });
+            
+            setSavedGameData({
+                save_data: {
+                    status: editStatus || null,
+                    hours: editHours || null
+                }
+            });
+            setEditMode(false);
+        } catch (err) {
+            console.error(err);
+            alert("Failed to update status.");
+        } finally {
+            setUpdating(false);
         }
     };
 
@@ -153,7 +202,8 @@ export default function GameDetail() {
             margin: "0 auto"
         }}>
             <div style={{ display: "flex", gap: "30px", alignItems: "flex-start", marginBottom: "30px" }}>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
+            {/* Left column: image, button, rating, status box */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "stretch", gap: "10px", width: "250px" }}>
                 <img 
                     ref={imgRef}
                     src={game.background_image} 
@@ -175,9 +225,126 @@ export default function GameDetail() {
                 >
                 {user ? (isSaved ? "Saved" : "Save Game") : "Log in to save game"}
                 </button>
+
+                {/* Rating under image */}
+                <div style={{ fontSize: "16px", marginTop: "10px", textAlign: "center"  }}>
+                    <p style={{ margin: 0 }}>⭐ Rate: {game.rating}</p>
+                </div>
+
+                {/* Status Box */}
+                {isSaved && savedGameData && (
+                    <div style={{ 
+                        backgroundColor: "#1a2332", 
+                        padding: "15px", 
+                        borderRadius: "8px",
+                        border: "1px solid #4db8ff",
+                        marginTop: "30px"
+                    }}>
+                        <h3 style={{ margin: "0 0 15px 0", fontSize: "18px", color: "#4db8ff" }}>Your Progress</h3>
+                        
+                        {!editMode ? (
+                            <>
+                                <div style={{ marginBottom: "10px" }}>
+                                    <p style={{ margin: "0 0 5px 0", fontSize: "14px", color: "#aaa" }}>Status:</p>
+                                    <p style={{ margin: 0, fontSize: "16px" }}>
+                                        {savedGameData.save_data?.status || "Not set"}
+                                    </p>
+                                </div>
+                                
+                                <div style={{ marginBottom: "15px" }}>
+                                    <p style={{ margin: "0 0 5px 0", fontSize: "14px", color: "#aaa" }}>Hours played:</p>
+                                    <p style={{ margin: 0, fontSize: "16px" }}>
+                                        {savedGameData.save_data?.hours ? `${savedGameData.save_data.hours} hours` : "Not set"}
+                                    </p>
+                                </div>
+                                
+                                <button
+                                    onClick={() => setEditMode(true)}
+                                    style={{
+                                        width: "100%",
+                                        padding: "8px",
+                                        backgroundColor: "#4db8ff",
+                                        color: "white",
+                                        border: "none",
+                                        borderRadius: "4px",
+                                        cursor: "pointer",
+                                        fontWeight: "bold"
+                                    }}
+                                >
+                                    Edit
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <div style={{ marginBottom: "10px" }}>
+                                    <label style={{ fontSize: "14px", color: "#aaa" }}>Status:</label>
+                                    <select 
+                                        value={editStatus} 
+                                        onChange={(e) => setEditStatus(e.target.value)} 
+                                        style={{ width: "100%", margin: "5px 0", padding: "5px", color: "black" }}
+                                    >
+                                        <option value="">Not set</option>
+                                        <option value="Playing">Playing</option>
+                                        <option value="Completed">Completed</option>
+                                        <option value="Want to play">Want to play</option>
+                                    </select>
+                                </div>
+                                
+                                <div style={{ marginBottom: "15px" }}>
+                                    <label style={{ fontSize: "14px", color: "#aaa" }}>Hours played:</label>
+                                    <input
+                                        type="number"
+                                        value={editHours}
+                                        onChange={(e) => setEditHours(e.target.value)}
+                                        placeholder="Optional"
+                                        style={{ width: "100%", margin: "5px 0", padding: "5px", color: "black" }}
+                                    />
+                                </div>
+                                
+                                <div style={{ display: "flex", gap: "10px" }}>
+                                    <button
+                                        onClick={handleUpdateStatus}
+                                        disabled={updating}
+                                        style={{
+                                            flex: 1,
+                                            padding: "8px",
+                                            backgroundColor: "#4db8ff",
+                                            color: "white",
+                                            border: "none",
+                                            borderRadius: "4px",
+                                            cursor: updating ? "not-allowed" : "pointer",
+                                            fontWeight: "bold"
+                                        }}
+                                    >
+                                        {updating ? "Updating..." : "Update"}
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setEditMode(false);
+                                            setEditStatus(savedGameData.save_data?.status || "");
+                                            setEditHours(savedGameData.save_data?.hours || "");
+                                        }}
+                                        style={{
+                                            flex: 1,
+                                            padding: "8px",
+                                            backgroundColor: "#333",
+                                            color: "white",
+                                            border: "none",
+                                            borderRadius: "4px",
+                                            cursor: "pointer"
+                                        }}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                )}
             </div>
 
-            <div>
+            {/* Right column: title, description, genre, platforms */}
+            <div style={{ flex: 1 }}>
                 <h2 style={{ marginBottom: "10px", fontSize: "40px" }}>{game.name}</h2>
                 <div 
                     ref={descRef}
@@ -202,13 +369,13 @@ export default function GameDetail() {
                         {expanded ? "Show less" : "... Show more"}
                     </span>
                 )}
-            </div>
-            </div>
 
-            <div style={{ display: "flex", fontSize: "16px", marginBottom: "40px", gap: "30px" }}>
-            <p>⭐ Rate: {game.rating}</p>
-            <div style={{ paddingLeft: "85px", paddingRight: "20px" }}><p>🎭 Genre: {genres}</p></div>
-            <p>🕹️ Platforms: {platforms}</p>
+                {/* Genre and Platforms under description */}
+                <div style={{ display: "flex", fontSize: "16px", marginTop: "20px", gap: "30px", flexWrap: "wrap", paddingTop: "26px" }}>
+                    <p style={{ margin: 0 }}>🎭 Genre: {genres}</p>
+                    <p style={{ margin: 0 }}>🕹️ Platforms: {platforms}</p>
+                </div>
+            </div>
             </div>
         </div>
 
@@ -279,7 +446,7 @@ export default function GameDetail() {
                     style={inputStyle}
                 />
                 {reviewText.trim() && !rating && (
-                    <p style={{ color: "#ff6b6b", fontSize: "14px"}}>
+                    <p style={{ color: "#ff6b6b", fontSize: "14px", margin: "0 0 10px 0" }}>
                         Please select a rating to submit a review
                     </p>
                 )}
