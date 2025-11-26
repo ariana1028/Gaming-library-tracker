@@ -15,7 +15,7 @@ export const addReview = async (userId, gameId, rating, reviewText) => {
 export const getReviewsByGame = async (gameId) => {
     const { data, error } = await supabase
         .from("reviews")
-        .select("*")
+        .select(`*, profiles!inner(username, avatar_color, avatar_url)`)
         .eq("game_id", gameId);
     if (error) throw error;
     return data;

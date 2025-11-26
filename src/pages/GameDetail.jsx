@@ -3,8 +3,9 @@ import { useParams } from "react-router-dom";
 import { getGameDetails } from "../services/rawgApi";
 import Navbar from "../components/NavBar";
 import { saveGame, getSavedGames } from "../services/supabaseGames";
-import { addReview, updateReview } from "../services/supabaseReviews";
+import { addReview, getReviewsByGame } from "../services/supabaseReviews";
 import { supabase } from "../services/supabaseClient";
+import ReviewCard from "../components/ReviewCard";
 
 const inputStyle = {
     display: "block",
@@ -43,6 +44,11 @@ export default function GameDetail() {
     const [editStatus, setEditStatus] = useState("");
     const [editHours, setEditHours] = useState("");
     const [updating, setUpdating] = useState(false);
+
+    // Review states
+    const [reviews, setReviews] = useState([]);
+    const [loadingReviews, setLoadingReviews] = useState(true);
+    const [showReviewModal, setShowReviewModal] = useState(false);
 
     const imgRef = useRef(null);
     const descRef = useRef(null);
@@ -93,6 +99,24 @@ export default function GameDetail() {
         checkSaved();
     }, [user, game]);
 
+    // Load reviews
+    const loadReviews = async () => {
+        if (!game) return;
+        setLoadingReviews(true);
+        try {
+            const reviewsData = await getReviewsByGame(Number(game.id));
+            setReviews(reviewsData || []);
+        } catch (err) {
+            console.error("Error loading reviews:", err);
+        } finally {
+            setLoadingReviews(false);
+        }
+    };
+
+    useEffect(() => {
+        loadReviews();
+    }, [game]);
+
     // Check if description needs expand button
     useEffect(() => {
         const checkHeight = () => {
@@ -130,6 +154,7 @@ export default function GameDetail() {
             // Save review if rating is provided
             if (rating) {
                 await addReview(user.id, Number(game.id), Number(rating), reviewText.trim() || null);
+                await loadReviews(); // Reload reviews
             }
 
             setIsSaved(true);
@@ -186,11 +211,34 @@ export default function GameDetail() {
         }
     };
 
+    const handleAddReview = async () => {
+        if (!user || !rating) {
+            alert("Please provide a rating.");
+            return;
+        }
+
+        try {
+            await addReview(user.id, Number(game.id), Number(rating), reviewText.trim() || null);
+            await loadReviews();
+            
+            setShowReviewModal(false);
+            setRating("");
+            setReviewText("");
+        } catch (err) {
+            console.error(err);
+            alert("Failed to add review.");
+        }
+    };
+
     if (loading) return <div style={{ backgroundColor: "#0b1b2b", color: "white", minHeight: "100vh", padding: "10px" }}><p>Loading game details...</p></div>;
     if (!game) return <div style={{ backgroundColor: "#0b1b2b", color: "white", minHeight: "100vh", padding: "10px" }}><p>Game not found.</p></div>;
 
     const genres = game.genres?.map(g => g.name).join(", ") || "N/A";
     const platforms = game.platforms?.map(p => p.platform.name).join(", ") || "N/A";
+
+    // Computed values for reviews
+    const userReview = user ? reviews.find(r => r.user_id === user.id) : null;
+    const otherReviews = user ? reviews.filter(r => r.user_id !== user.id) : reviews;
 
     return (
         <div style={{ backgroundColor: "#0b1b2b", color: "white", minHeight: "100vh" }}>
@@ -281,7 +329,7 @@ export default function GameDetail() {
                                     <select 
                                         value={editStatus} 
                                         onChange={(e) => setEditStatus(e.target.value)} 
-                                        style={{ width: "100%", margin: "5px 0", padding: "5px", color: "black" }}
+                                        style={inputStyle}
                                     >
                                         <option value="">Not set</option>
                                         <option value="Playing">Playing</option>
@@ -297,7 +345,7 @@ export default function GameDetail() {
                                         value={editHours}
                                         onChange={(e) => setEditHours(e.target.value)}
                                         placeholder="Optional"
-                                        style={{ width: "100%", margin: "5px 0", padding: "5px", color: "black" }}
+                                        style={inputStyle}
                                     />
                                 </div>
                                 
@@ -343,7 +391,7 @@ export default function GameDetail() {
                 )}
             </div>
 
-            {/* Right column: title, description, genre, platforms */}
+            {/* Right column: title, description, genre, platforms, reviews */}
             <div style={{ flex: 1 }}>
                 <h2 style={{ marginBottom: "10px", fontSize: "40px" }}>{game.name}</h2>
                 <div 
@@ -374,6 +422,118 @@ export default function GameDetail() {
                 <div style={{ display: "flex", fontSize: "16px", marginTop: "20px", gap: "30px", flexWrap: "wrap", paddingTop: "26px" }}>
                     <p style={{ margin: 0 }}>🎭 Genre: {genres}</p>
                     <p style={{ margin: 0 }}>🕹️ Platforms: {platforms}</p>
+                </div>
+
+                {/* Reviews Section */}
+                <div style={{ marginTop: "40px" }}>
+                    <h3 style={{ fontSize: "24px", marginBottom: "20px", color: "#fff" }}>
+                        Reviews ({reviews.length})
+                    </h3>
+                    
+                    {loadingReviews ? (
+                        <p style={{ color: "#aaa" }}>Loading reviews...</p>
+                    ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                            {/* User Review Prompt - Show if saved but no review */}
+                            {user && isSaved && !userReview && (
+                                <div 
+                                    style={{
+                                        backgroundColor: "#1a2332",
+                                        padding: "20px",
+                                        borderRadius: "8px",
+                                        border: "2px dashed #4db8ff",
+                                        textAlign: "center"
+                                    }}
+                                >
+                                    <p style={{ margin: "0 0 15px 0", fontSize: "16px" }}>
+                                        You've saved this game! Share your thoughts with a review.
+                                    </p>
+                                    <button
+                                        onClick={() => setShowReviewModal(true)}
+                                        style={{
+                                            backgroundColor: "#4db8ff",
+                                            color: "white",
+                                            border: "none",
+                                            borderRadius: "6px",
+                                            padding: "10px 20px",
+                                            cursor: "pointer",
+                                            fontWeight: "bold",
+                                            fontSize: "16px"
+                                        }}
+                                    >
+                                        Leave a Review
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Prompt if not logged in */}
+                            {!user && (
+                                <div 
+                                    style={{
+                                        backgroundColor: "#1a2332",
+                                        padding: "20px",
+                                        borderRadius: "8px",
+                                        border: "1px solid #333",
+                                        textAlign: "center"
+                                    }}
+                                >
+                                    <p style={{ margin: 0, color: "#aaa" }}>
+                                        Log in to save this game and leave a review!
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Prompt if logged in but not saved */}
+                            {user && !isSaved && (
+                                <div 
+                                    style={{
+                                        backgroundColor: "#1a2332",
+                                        padding: "20px",
+                                        borderRadius: "8px",
+                                        border: "1px solid #333",
+                                        textAlign: "center"
+                                    }}
+                                >
+                                    <p style={{ margin: 0, color: "#aaa" }}>
+                                        Save this game first to leave a review!
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* User's Review - Always at top if exists */}
+                            {userReview && (
+                                <ReviewCard 
+                                    review={{
+                                        ...userReview,
+                                        username: user.user_metadata?.username || user.email || 'You'
+                                    }}
+                                    isUserReview={true}
+                                    userId={user.id}
+                                    gameId={Number(game.id)}
+                                    onReviewChange={loadReviews}
+                                />
+                            )}
+                            
+                            {/* Other Reviews */}
+                            {otherReviews.length === 0 && !userReview && user && isSaved ? (
+                                <p style={{ color: "#aaa" }}>No other reviews yet. Be the first to review this game!</p>
+                            ) : (
+                                otherReviews.map((review) => (
+                                    <ReviewCard 
+                                        key={review.id}
+                                        review={{
+                                            ...review,
+                                            username: "Anonymous"
+                                        }}
+                                        isUserReview={false}
+                                        userId={user?.id}
+                                        gameId={Number(game.id)}
+                                        onReviewChange={loadReviews}
+                                    />
+                                ))
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
             </div>
@@ -467,6 +627,74 @@ export default function GameDetail() {
                 </div>
                 </div>
             </div>
+            </div>
+        )}
+
+        {/* Review Modal */}
+        {showReviewModal && (
+            <div style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                backgroundColor: "rgba(0,0,0,0.5)",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                zIndex: 1000
+            }}>
+                <div style={{ 
+                    backgroundColor: "#3f454bff", 
+                    padding: "20px", 
+                    borderRadius: "8px", 
+                    width: "500px"
+                }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <h3 style={{ margin: 0 }}>Leave a Review</h3>
+                        <button onClick={() => setShowReviewModal(false)} style={{ cursor: "pointer", fontSize: "18px", border: "none", background: "transparent", color: "white" }}>✕</button>
+                    </div>
+
+                    <div style={{ marginTop: "15px" }}>
+                        <label>Rating (1-5):</label>
+                        <select 
+                            value={rating} 
+                            onChange={(e) => setRating(e.target.value)} 
+                            style={inputStyle}
+                        >
+                            <option value="">Select rating</option>
+                            <option value="1">1 - Poor</option>
+                            <option value="2">2 - Fair</option>
+                            <option value="3">3 - Good</option>
+                            <option value="4">4 - Very Good</option>
+                            <option value="5">5 - Excellent</option>
+                        </select>
+
+                        <label>Review:</label>
+                        <textarea
+                            value={reviewText}
+                            onChange={(e) => setReviewText(e.target.value)}
+                            placeholder="Write your review (optional)"
+                            style={inputStyle}
+                        />
+
+                        <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "15px" }}>
+                            <button 
+                                onClick={handleAddReview} 
+                                style={{...buttonStyle, fontWeight: "bold", backgroundColor: "#4db8ff", color: "white"}}
+                                disabled={!rating}
+                            >
+                                Submit Review
+                            </button>
+                            <button 
+                                onClick={() => setShowReviewModal(false)} 
+                                style={{...buttonStyle, backgroundColor: "#333", color: "white"}}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         )}
         </div>

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../services/supabaseClient";
 import { getSavedGames, deleteSavedGame } from "../services/supabaseGames";
+import { deleteReview } from "../services/supabaseReviews";
 
 export default function Profile() {
     const [user, setUser] = useState(null);
@@ -47,9 +48,11 @@ export default function Profile() {
 
     const handleRemoveGame = async (gameId) => {
         if (!user) return;
+        if (!confirm("This action will permanently delete your progress and review. Are you sure you want to continue?")) return;
         
         try {
             await deleteSavedGame(user.id, gameId);
+            await deleteReview(user.id, gameId);
             setSavedGames(savedGames.filter(g => g.game_id !== gameId));
         } catch (err) {
             console.error("Error removing game:", err);
