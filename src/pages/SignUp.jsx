@@ -23,6 +23,13 @@ const buttonStyle = {
     fontWeight: "bold",
 };
 
+const labelStyle = {
+    fontSize: "14px",
+    color: "#aaa",
+    display: "block",
+    marginBottom: "5px"
+};
+
 export default function Signup() {
     const [email, setEmail] = useState("");
     const [username, setUsername] = useState("");
@@ -40,59 +47,79 @@ export default function Signup() {
         }
 
         try {
-        await signUpUser(email, username, password);
-        setEmail("");
-        setUsername("");
-        setPassword("");
-        setConfirmPassword("");
-        navigate("/p79/dashboard");
+            await signUpUser(email, username, password);
+            setEmail("");
+            setUsername("");
+            setPassword("");
+            setConfirmPassword("");
+            navigate("/p79/dashboard");
         } catch (err) {
-        setMessage(err.message);
+            setMessage(err.message);
         }
     };
 
     return (
         <div style={{ backgroundColor: "#0b1b2b", minHeight: "100vh", color: "white" }}>
-        <Navbar />
-        <div style={{ padding: "40px", maxWidth: "400px", margin: "auto" }}>
-            <h2>Sign Up</h2>
-            <form onSubmit={handleSignup}>
-            <input
-                type="text"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-                style={inputStyle}
-            />
-            <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                style={inputStyle}
-            />
-            <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                style={inputStyle}
-            />
-            <input
-                type="password"
-                placeholder="Confirm Password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                style={inputStyle}
-            />
-            <button type="submit" style={buttonStyle}>Sign Up</button>
-            </form>
-            <p style={{ color: "#ff6b6b" }}>{message}</p>
-        </div>
+            <Navbar />
+            <div style={{ padding: "40px", maxWidth: "400px", margin: "auto" }}>
+                <h1>Sign Up</h1>
+                <form onSubmit={handleSignup}>
+                    <label htmlFor="signup-username" style={labelStyle}>
+                        Username:
+                    </label>
+                    <input
+                        id="signup-username"
+                        type="text"
+                        placeholder="Username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        required
+                        style={inputStyle}
+                    />
+                    
+                    <label htmlFor="signup-email" style={labelStyle}>
+                        Email:
+                    </label>
+                    <input
+                        id="signup-email"
+                        type="email"
+                        placeholder="Email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        style={inputStyle}
+                    />
+                    
+                    <label htmlFor="signup-password" style={labelStyle}>
+                        Password:
+                    </label>
+                    <input
+                        id="signup-password"
+                        type="password"
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        style={inputStyle}
+                    />
+                    
+                    <label htmlFor="signup-confirm" style={labelStyle}>
+                        Confirm Password:
+                    </label>
+                    <input
+                        id="signup-confirm"
+                        type="password"
+                        placeholder="Confirm Password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                        style={inputStyle}
+                    />
+                    
+                    <button type="submit" style={buttonStyle}>Sign Up</button>
+                </form>
+                <p style={{ color: "#ff6b6b" }}>{message}</p>
+            </div>
         </div>
     );
-    }
+}

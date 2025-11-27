@@ -1,4 +1,3 @@
-import { Container, Row, Col, Image } from 'react-bootstrap';
 import Navbar from '../components/NavBar';
 import signupPic from '../assets/signup.png';
 import dashboardPic from '../assets/dashboard.png';
@@ -32,38 +31,63 @@ export default function HomePage() {
     return (
         <div style={{ backgroundColor: "#142236", color: "white", minHeight: "100vh", paddingBottom: "50px" }}>
             <Navbar />
-            <Container style={{ paddingTop: "70px", paddingBottom: "100px" }}>
-                <h1 className="mb-4" style={{ textAlign: "center", paddingBottom: "20px" }}>Gaming Library Tracker</h1>
-                <p style={{ textAlign: "center", fontSize: "18px", color: "#ccc", marginBottom: "90px" }}>
+            <div style={{ 
+                maxWidth: "1200px", 
+                margin: "0 auto", 
+                padding: "70px 15px 100px" 
+            }}>
+                <h1 style={{ 
+                    textAlign: "center", 
+                    paddingBottom: "20px",
+                    marginBottom: "1rem"
+                }}>
+                    Gaming Library Tracker
+                </h1>
+                <p style={{ 
+                    textAlign: "center", 
+                    fontSize: "18px", 
+                    color: "#ccc", 
+                    marginBottom: "90px" 
+                }}>
                     A simple tool to track your gaming collection, save progress, and review your favorite games.
                 </p>
 
                 {sections.map((section, idx) => (
-                    <Row key={idx} className="align-items-center mb-5">
-                        {idx % 2 === 0 ? (
-                            <>
-                                <Col md={6}>
-                                    <Image src={section.img} alt={section.title} fluid rounded />
-                                </Col>
-                                <Col md={6}>
-                                    <h3>{section.title}</h3>
-                                    <p style={{ color: "#ccc" }}>{section.description}</p>
-                                </Col>
-                            </>
-                        ) : (
-                            <>
-                                <Col md={6} className="order-md-2">
-                                    <Image src={section.img} alt={section.title} fluid rounded />
-                                </Col>
-                                <Col md={6} className="order-md-1">
-                                    <h3>{section.title}</h3>
-                                    <p style={{ color: "#ccc" }}>{section.description}</p>
-                                </Col>
-                            </>
-                        )}
-                    </Row>
+                    <div 
+                        key={idx} 
+                        style={{ 
+                            display: "flex", 
+                            flexWrap: "wrap",
+                            alignItems: "center",
+                            marginBottom: "50px",
+                            gap: "30px",
+                            flexDirection: idx % 2 === 0 ? "row" : "row-reverse"
+                        }}
+                    >
+                        <div style={{ 
+                            flex: "1 1 45%", 
+                            minWidth: "300px"
+                        }}>
+                            <img 
+                                src={section.img} 
+                                alt={section.title} 
+                                style={{ 
+                                    width: "100%", 
+                                    borderRadius: "8px",
+                                    display: "block"
+                                }} 
+                            />
+                        </div>
+                        <div style={{ 
+                            flex: "1 1 45%", 
+                            minWidth: "300px"
+                        }}>
+                            <h3 style={{ marginBottom: "15px" }}>{section.title}</h3>
+                            <p style={{ color: "#ccc", lineHeight: "1.6" }}>{section.description}</p>
+                        </div>
+                    </div>
                 ))}
-            </Container>
+            </div>
         </div>
     );
 }

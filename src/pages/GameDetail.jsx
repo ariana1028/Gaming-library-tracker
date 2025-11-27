@@ -317,19 +317,19 @@ export default function GameDetail() {
                         border: "1px solid #4db8ff",
                         marginTop: "30px"
                     }}>
-                        <h3 style={{ margin: "0 0 15px 0", fontSize: "18px", color: "#4db8ff" }}>Your Progress</h3>
+                        <h2 style={{ margin: "0 0 15px 0", fontSize: "18px", color: "#4db8ff" }}>Your Progress</h2>
                         
                         {!editMode ? (
                             <>
                                 <div style={{ marginBottom: "10px" }}>
-                                    <p style={{ margin: "0 0 5px 0", fontSize: "14px", color: "#aaa" }}>Status:</p>
+                                    <p style={{ margin: "0 0 5px 0", fontSize: "14px", color: "#bbb" }}>Status:</p>
                                     <p style={{ margin: 0, fontSize: "16px" }}>
                                         {savedGameData.save_data?.status || "Not set"}
                                     </p>
                                 </div>
                                 
                                 <div style={{ marginBottom: "15px" }}>
-                                    <p style={{ margin: "0 0 5px 0", fontSize: "14px", color: "#aaa" }}>Hours played:</p>
+                                    <p style={{ margin: "0 0 5px 0", fontSize: "14px", color: "#bbb" }}>Hours played:</p>
                                     <p style={{ margin: 0, fontSize: "16px" }}>
                                         {savedGameData.save_data?.hours ? `${savedGameData.save_data.hours} hours` : "Not set"}
                                     </p>
@@ -354,8 +354,11 @@ export default function GameDetail() {
                         ) : (
                             <>
                                 <div style={{ marginBottom: "10px" }}>
-                                    <label style={{ fontSize: "14px", color: "#aaa" }}>Status:</label>
+                                    <label htmlFor="edit-status" style={{ fontSize: "14px", color: "#bbb", display: "block", marginBottom: "5px" }}>
+                                        Status:
+                                    </label>
                                     <select 
+                                        id="edit-status"
                                         value={editStatus} 
                                         onChange={(e) => setEditStatus(e.target.value)} 
                                         style={inputStyle}
@@ -368,8 +371,11 @@ export default function GameDetail() {
                                 </div>
                                 
                                 <div style={{ marginBottom: "15px" }}>
-                                    <label style={{ fontSize: "14px", color: "#aaa" }}>Hours played:</label>
+                                    <label htmlFor="edit-hours" style={{ fontSize: "14px", color: "#bbb", display: "block", marginBottom: "5px" }}>
+                                        Hours played:
+                                    </label>
                                     <input
+                                        id="edit-hours"
                                         type="number"
                                         value={editHours}
                                         onChange={(e) => setEditHours(e.target.value)}
@@ -422,7 +428,7 @@ export default function GameDetail() {
 
             {/* Right column: title, description, genre, platforms, reviews */}
             <div style={{ flex: 1 }}>
-                <h2 style={{ marginBottom: "10px", fontSize: "40px" }}>{game.name}</h2>
+                <h1 style={{ marginBottom: "10px", fontSize: "40px" }}>{game.name}</h1>
                 <div 
                     ref={descRef}
                     style={{ 
@@ -455,12 +461,12 @@ export default function GameDetail() {
 
                 {/* Reviews Section */}
                 <div style={{ marginTop: "40px" }}>
-                    <h3 style={{ fontSize: "24px", marginBottom: "20px", color: "#fff" }}>
+                    <h2 style={{ fontSize: "24px", marginBottom: "20px", color: "#fff" }}>
                         Reviews ({reviews.length})
-                    </h3>
+                    </h2>
                     
                     {loadingReviews ? (
-                        <p style={{ color: "#aaa" }}>Loading reviews...</p>
+                        <p style={{ color: "#bbb" }}>Loading reviews...</p>
                     ) : (
                         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
                             {/* User Review Prompt - Show if saved but no review */}
@@ -506,7 +512,7 @@ export default function GameDetail() {
                                         textAlign: "center"
                                     }}
                                 >
-                                    <p style={{ margin: 0, color: "#aaa" }}>
+                                    <p style={{ margin: 0, color: "#bbb" }}>
                                         Log in to save this game and leave a review!
                                     </p>
                                 </div>
@@ -523,7 +529,7 @@ export default function GameDetail() {
                                         textAlign: "center"
                                     }}
                                 >
-                                    <p style={{ margin: 0, color: "#aaa" }}>
+                                    <p style={{ margin: 0, color: "#bbb" }}>
                                         Save this game first to leave a review!
                                     </p>
                                 </div>
@@ -545,7 +551,7 @@ export default function GameDetail() {
                             
                             {/* Other Reviews */}
                             {otherReviews.length === 0 && !userReview && user && isSaved ? (
-                                <p style={{ color: "#aaa" }}>No other reviews yet. Be the first to review this game!</p>
+                                <p style={{ color: "#bbb" }}>No other reviews yet. Be the first to review this game!</p>
                             ) : (
                                 otherReviews.map((review) => (
                                     <ReviewCard 
@@ -591,21 +597,31 @@ export default function GameDetail() {
                 overflowY: "auto"
             }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <h3 style={{ margin: 0 }}>Save Game</h3>
+                <h2 style={{ margin: 0 }}>Save Game</h2>
                 <button onClick={() => setShowModal(false)} style={{ cursor: "pointer", fontSize: "18px", border: "none", background: "transparent", color: "white" }}>✕</button>
                 </div>
 
                 <div style={{ marginTop: "15px" }}>
-                <label>Status:</label>
-                <select value={status} onChange={(e) => setStatus(e.target.value)} style={inputStyle}>
+                <label htmlFor="save-status" style={{ fontSize: "14px", color: "#bbb", display: "block", marginBottom: "5px" }}>
+                    Status:
+                </label>
+                <select 
+                    id="save-status"
+                    value={status} 
+                    onChange={(e) => setStatus(e.target.value)} 
+                    style={inputStyle}
+                >
                     <option value="">Select status (optional)</option>
                     <option value="Playing">Playing</option>
                     <option value="Completed">Completed</option>
                     <option value="Want to play">Want to play</option>
                 </select>
 
-                <label>Hours played:</label>
+                <label htmlFor="save-hours" style={{ fontSize: "14px", color: "#bbb", display: "block", marginBottom: "5px" }}>
+                    Hours played:
+                </label>
                 <input 
+                    id="save-hours"
                     type="number" 
                     value={hours} 
                     onChange={(e) => setHours(e.target.value)} 
@@ -613,8 +629,11 @@ export default function GameDetail() {
                     style={inputStyle} 
                 />
 
-                <label>Rating (1-5):</label>
+                <label htmlFor="save-rating" style={{ fontSize: "14px", color: "#bbb", display: "block", marginBottom: "5px" }}>
+                    Rating (1-5):
+                </label>
                 <select 
+                    id="save-rating"
                     value={rating} 
                     onChange={(e) => setRating(e.target.value)} 
                     style={inputStyle}
@@ -627,8 +646,11 @@ export default function GameDetail() {
                     <option value="5">5 - Excellent</option>
                 </select>
 
-                <label>Review:</label>
+                <label htmlFor="save-review" style={{ fontSize: "14px", color: "#bbb", display: "block", marginBottom: "5px" }}>
+                    Review:
+                </label>
                 <textarea
+                    id="save-review"
                     value={reviewText}
                     onChange={(e) => setReviewText(e.target.value)}
                     placeholder="Write your review (optional)"
@@ -680,13 +702,16 @@ export default function GameDetail() {
                     width: "500px"
                 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <h3 style={{ margin: 0 }}>Leave a Review</h3>
+                        <h2 style={{ margin: 0 }}>Leave a Review</h2>
                         <button onClick={() => setShowReviewModal(false)} style={{ cursor: "pointer", fontSize: "18px", border: "none", background: "transparent", color: "white" }}>✕</button>
                     </div>
 
                     <div style={{ marginTop: "15px" }}>
-                        <label>Rating (1-5):</label>
+                        <label htmlFor="review-rating" style={{ fontSize: "14px", color: "#bbb", display: "block", marginBottom: "5px" }}>
+                            Rating (1-5):
+                        </label>
                         <select 
+                            id="review-rating"
                             value={rating} 
                             onChange={(e) => setRating(e.target.value)} 
                             style={inputStyle}
@@ -699,8 +724,11 @@ export default function GameDetail() {
                             <option value="5">5 - Excellent</option>
                         </select>
 
-                        <label>Review:</label>
+                        <label htmlFor="review-text" style={{ fontSize: "14px", color: "#bbb", display: "block", marginBottom: "5px" }}>
+                            Review:
+                        </label>
                         <textarea
+                            id="review-text"
                             value={reviewText}
                             onChange={(e) => setReviewText(e.target.value)}
                             placeholder="Write your review (optional)"

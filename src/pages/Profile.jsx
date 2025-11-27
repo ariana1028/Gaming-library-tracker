@@ -290,7 +290,7 @@ export default function Profile() {
                         {loading ? (
                             <p>Loading saved games...</p>
                         ) : savedGames.length === 0 ? (
-                            <p style={{ color: "#aaa" }}>No saved games yet.</p>
+                            <p style={{ color: "#bbb" }}>No saved games yet.</p>
                         ) : (
                             <div
                                 style={{
@@ -316,7 +316,7 @@ export default function Profile() {
                                         {game.save_data?.image && (
                                             <img
                                                 src={game.save_data.image}
-                                                alt={game.save_data?.name}
+                                                alt={`Cover image for ${game.save_data?.name || 'game'}`}
                                                 style={{
                                                     width: "100%",
                                                     height: "150px",
@@ -363,7 +363,7 @@ export default function Profile() {
                 {activeTab === "reviews" && (
                     <div style={{ display: "flex", flexDirection: "column", gap: "20px", paddingBottom: "40px" }}>
                         {userReviews.length === 0 ? (
-                            <p style={{ color: "#aaa" }}>You haven't written any reviews yet.</p>
+                            <p style={{ color: "#bbb" }}>You haven't written any reviews yet.</p>
                         ) : (
                             userReviews.map((review) => (
                                 <ReviewCard

@@ -162,7 +162,7 @@ export default function ReviewCard({
                                 <span style={{ color: "#ffa500" }}>{"★".repeat(review.rating)}</span>
                                 <span style={{ color: "#444" }}>{"★".repeat(5 - review.rating)}</span>
                             </span>
-                            <span style={{ color: "#aaa", fontSize: "14px" }}>
+                            <span style={{ color: "#bbb", fontSize: "14px" }}>
                                 {review.rating}/5
                             </span>
                         </div>
@@ -183,7 +183,7 @@ export default function ReviewCard({
                 )
             ) : (
                 <div style={{ marginTop: "15px" }}>
-                    <label style={{ fontSize: "14px", color: "#aaa", display: "block", marginBottom: "5px" }}>Rating:</label>
+                    <label style={{ fontSize: "14px", color: "#bbb", display: "block", marginBottom: "5px" }}>Rating:</label>
                     <select 
                         value={editRating} 
                         onChange={(e) => setEditRating(e.target.value)} 
@@ -196,7 +196,7 @@ export default function ReviewCard({
                         <option value="5">5 - Excellent</option>
                     </select>
 
-                    <label style={{ fontSize: "14px", color: "#aaa", display: "block", marginBottom: "5px" }}>Review:</label>
+                    <label style={{ fontSize: "14px", color: "#bbb", display: "block", marginBottom: "5px" }}>Review:</label>
                     <textarea
                         value={editText}
                         onChange={(e) => setEditText(e.target.value)}

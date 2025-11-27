@@ -142,7 +142,21 @@ export default function Navbar() {
 
                 {/* Search box */}
                 <form onSubmit={handleSearch}>
+                    <label htmlFor="search-games" style={{
+                        position: "absolute",
+                        width: "1px",
+                        height: "1px",
+                        padding: "0",
+                        margin: "-1px",
+                        overflow: "hidden",
+                        clip: "rect(0, 0, 0, 0)",
+                        whiteSpace: "nowrap",
+                        borderWidth: "0"
+                    }}>
+                        Search games:
+                    </label>
                     <input
+                        id="search-games"
                         type="text"
                         placeholder="Search games..."
                         value={searchTerm}
