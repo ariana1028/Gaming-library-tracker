@@ -707,6 +707,12 @@ export default function GameDetail() {
                             style={inputStyle}
                         />
 
+                        {reviewText.trim() && !rating && (
+                            <p style={{ color: "#ff6b6b", fontSize: "14px", margin: "0 0 10px 0" }}>
+                                Please select a rating to submit a review
+                            </p>
+                        )}
+
                         <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "15px" }}>
                             <button 
                                 onClick={handleAddReview} 

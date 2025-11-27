@@ -110,7 +110,7 @@ export default function Dashboard() {
                     />
                 )}
                 <div style={{ padding: "10px" }}>
-                    <h3 style={{ margin: "0 0 5px 0" }}>{game.name}</h3>
+                    <h3 style={{ margin: "0 0 5px 0", fontSize: "20px" }}>{game.name}</h3>
                 </div>
                 </div>
             ))}
