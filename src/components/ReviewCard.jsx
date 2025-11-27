@@ -74,31 +74,6 @@ export default function ReviewCard({
                 position: "relative"
             }}
         >
-            {/* Game Info (for profile page) */}
-            {showGameInfo && gameData && (
-                <div style={{ 
-                    display: "flex", 
-                    alignItems: "center", 
-                    gap: "15px", 
-                    marginBottom: "15px",
-                    paddingBottom: "15px",
-                    borderBottom: "1px solid #333"
-                }}>
-                    <img 
-                        src={gameData.image} 
-                        alt={gameData.name}
-                        style={{ 
-                            width: "60px", 
-                            height: "60px", 
-                            borderRadius: "6px",
-                            objectFit: "cover" 
-                        }}
-                    />
-                    <h4 style={{ margin: 0, fontSize: "18px", color: "#4db8ff" }}>
-                        {gameData.name}
-                    </h4>
-                </div>
-            )}
 
             {/* Edit/Delete buttons */}
             {isUserReview && !isEditing && (
@@ -159,9 +134,15 @@ export default function ReviewCard({
                 
                 <div style={{ flex: 1 }}>
                     <p style={{ margin: "0 0 5px 0", fontWeight: "bold", fontSize: "16px" }}>
-                        {review.profiles?.username || "Anonymous"} 
-                        {isUserReview && <span style={{ color: "#4db8ff" }}> (You)</span>}
+                        {review.profiles?.username || "Anonymous"}
+
+                        {gameData?.name && (
+                            <span style={{ color: "#4db8ff", marginLeft: "8px", fontWeight: "normal" }}>
+                                • {gameData.name}
+                            </span>
+                        )}
                     </p>
+
                     {!isEditing && (
                         <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
                             <span style={{ fontSize: "18px", letterSpacing: "2px" }}>

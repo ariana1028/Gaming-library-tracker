@@ -3,7 +3,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../services/supabaseClient";
 import { getSavedGames, deleteSavedGame } from "../services/supabaseGames";
-import { deleteReview } from "../services/supabaseReviews";
+import { deleteReview, getReviewsByUser } from "../services/supabaseReviews"; // ← make sure this is imported
+import ReviewCard from "../components/ReviewCard";
 
 export default function Profile() {
     const [user, setUser] = useState(null);
@@ -12,6 +13,9 @@ export default function Profile() {
     const navigate = useNavigate();
 
     const [profile, setProfile] = useState(null);
+
+    const [activeTab, setActiveTab] = useState("games");
+    const [userReviews, setUserReviews] = useState([]);
 
     useEffect(() => {
         const getUser = async () => {
@@ -43,7 +47,7 @@ export default function Profile() {
         };
     }, []);
 
-    // Fetch saved games when user is loaded
+    // Fetch saved games
     useEffect(() => {
         const fetchSavedGames = async () => {
             if (!user) return;
@@ -62,9 +66,34 @@ export default function Profile() {
         fetchSavedGames();
     }, [user]);
 
+    // Fetch user reviews
+    useEffect(() => {
+        const fetchUserReviews = async () => {
+            if (!user) return;
+            try {
+                const reviews = await getReviewsByUser(user.id);
+
+                // Attach game info to each review
+                const reviewsWithGames = reviews.map((r) => {
+                    const game = savedGames.find(g => g.game_id === r.game_id);
+                    return {
+                        ...r,
+                        gameData: game ? game.save_data : null
+                    };
+                });
+
+                setUserReviews(reviewsWithGames);
+            } catch (err) {
+                console.error("Error loading user reviews:", err);
+            }
+        };
+
+        fetchUserReviews();
+    }, [user, savedGames]);
+
     const handleRemoveGame = async (gameId) => {
         if (!user) return;
-        if (!confirm("This action will permanently delete your progress and review. Are you sure you want to continue?")) return;
+        if (!confirm("This action will permanently delete your progress and review. Are you sure?")) return;
         
         try {
             await deleteSavedGame(user.id, gameId);
@@ -85,11 +114,82 @@ export default function Profile() {
         );
     }
 
+    function HeaderDropdown({ activeTab, setActiveTab }) {
+        const [open, setOpen] = useState(false);
+
+        const handleSelect = (value) => {
+            setActiveTab(value);
+            setOpen(false);
+        };
+
+        return (
+            <div style={{ position: "relative", display: "inline-block" }}>
+                {/* Visible clickable label */}
+                <div
+                    onClick={() => setOpen(!open)}
+                    style={{
+                        fontSize: "22px",
+                        fontWeight: "normal",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        userSelect: "none"
+                    }}
+                >
+                    {activeTab === "games" ? "Saved Games" : "Your Reviews"}
+                    <span style={{ fontSize: "16px" }}>▼</span>
+                </div>
+
+                {/* Dropdown menu */}
+                {open && (
+                    <div
+                        style={{
+                            position: "absolute",
+                            top: "30px",
+                            left: "-20px",
+                            backgroundColor: "#2a3a4a",
+                            borderRadius: "4px",
+                            zIndex: 100,
+                            width: "180px"
+                        }}
+                    >
+                        {activeTab === "games" ? 
+                            <div
+                            onClick={() => handleSelect("reviews")}
+                            style={{
+                                paddingLeft: "20px",
+                                paddingTop: "10px",
+                                paddingBottom: "10px",
+                                cursor: "pointer",
+                                color: "white"
+                            }}
+                        >
+                            Your Reviews
+                        </div>
+                        : <div
+                            onClick={() => handleSelect("games")}
+                            style={{
+                                paddingLeft: "20px",
+                                paddingTop: "10px",
+                                paddingBottom: "10px",
+                                cursor: "pointer",
+                                color: "white"
+                            }}
+                        >
+                            Saved Games
+                        </div>}
+                        </div>
+                )}
+            </div>
+        );
+    }
+
     return (
         <div style={{ backgroundColor: "#0b1b2b", color: "white", minHeight: "100vh"}}>
             <Navbar />
             
-            {/* Profile Header Section */}
+            {/* Profile Header */}
             <div style={{
                 backgroundColor: "#1a2332",
                 padding: "50px 60px",
@@ -109,7 +209,7 @@ export default function Profile() {
                             alignItems: "center",
                             fontWeight: "bold",
                             fontSize: "48px",
-                            backgroundColor: profile?.avatar_color || "#3d9ad7" ,
+                            backgroundColor: profile?.avatar_color || "#3d9ad7",
                             textTransform: "uppercase",
                             flexShrink: 0
                         }}
@@ -121,113 +221,134 @@ export default function Profile() {
 
                     {/* User Info */}
                     <div>
-                        <h2 style={{ 
-                            margin: "0",
-                            fontSize: "36px",
-                            fontWeight: "normal"
-                        }}>
+                        <h2 style={{ margin: 0, fontSize: "36px" }}>
                             {user.user_metadata?.username || user.email}
                         </h2>
                     </div>
                 </div>
 
-                {/* Stats next to username */}
-                <div style={{ fontSize: "18px", color: "#ccc", marginLeft: "50px" }}>
-                    <p style={{ margin: 0 }}>total games: {savedGames.length}</p>
+                {/* Stats */}
+                <div style={{ fontSize: "18px", color: "#ccc", marginLeft: "70px"}}>
+                    <p style={{ margin: "0 0 30px 0"  }}>Total games: {savedGames.length}</p>
+                    <p style={{ margin: 0 }}>Total reviews: {userReviews.length}</p>
                 </div>
             </div>
 
-            {/* Games Section */}
+            {/* Main Section */}
             <div style={{ padding: "0 60px" }}>
-                {/* Section Header */}
-                <div style={{
-                    backgroundColor: "#2a3a4a",
-                    padding: "15px 20px",
-                    marginTop: "40px",
-                    marginBottom: "30px",
-                    borderRadius: "4px"
-                }}>
-                    <h3 style={{ 
-                        margin: 0,
-                        fontSize: "22px",
-                        fontWeight: "normal"
-                    }}>
-                        Saved games
-                    </h3>
-                </div>
 
-                {/* Games Grid */}
-                {loading ? (
-                    <p>Loading saved games...</p>
-                ) : savedGames.length === 0 ? (
-                    <p style={{ color: "#aaa" }}>No saved games yet. Start exploring and save your favorites!</p>
-                ) : (
-                    <div
-                        style={{
-                            display: "grid",
-                            gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-                            gap: "20px",
-                            paddingBottom: "40px"
-                        }}
-                    >
-                        {savedGames.map((game) => (
+                {/* Header with custom dropdown */}
+                <div
+                    style={{
+                        backgroundColor: "#2a3a4a",
+                        padding: "15px 20px",
+                        marginTop: "40px",
+                        marginBottom: "30px",
+                        borderRadius: "4px"
+                    }}
+                >
+                <div style={{ display: "flex", justifyContent: "flex-start" }}>
+                        <HeaderDropdown activeTab={activeTab} setActiveTab={setActiveTab} />
+                </div>                
+            </div>
+
+                {/* ------------------- GAMES TAB ------------------- */}
+                {activeTab === "games" && (
+                    <>
+                        {loading ? (
+                            <p>Loading saved games...</p>
+                        ) : savedGames.length === 0 ? (
+                            <p style={{ color: "#aaa" }}>No saved games yet.</p>
+                        ) : (
                             <div
-                                key={game.game_id}
                                 style={{
-                                    border: "1px solid #ccc",
-                                    borderRadius: "8px",
-                                    overflow: "hidden",
-                                    boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
-                                    backgroundColor: "#142236",
-                                    position: "relative",
-                                    cursor: "pointer"
+                                    display: "grid",
+                                    gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+                                    gap: "20px",
+                                    paddingBottom: "40px"
                                 }}
                             >
-                                <div onClick={() => navigate(`/p79/gamedetail/${game.game_id}`)}>
-                                    {game.save_data?.image && (
-                                        <img
-                                            src={game.save_data.image}
-                                            alt={game.save_data?.name || "Game"}
-                                            style={{ 
-                                                width: "100%", 
-                                                height: "150px", 
-                                                objectFit: "cover",
-                                                display: "block"
+                                {savedGames.map((game) => (
+                                    <div
+                                        key={game.game_id}
+                                        style={{
+                                            border: "1px solid #ccc",
+                                            borderRadius: "8px",
+                                            overflow: "hidden",
+                                            backgroundColor: "#142236",
+                                            position: "relative",
+                                            cursor: "pointer"
+                                        }}
+                                        onClick={() => navigate(`/p79/gamedetail/${game.game_id}`)}
+                                    >
+                                        {game.save_data?.image && (
+                                            <img
+                                                src={game.save_data.image}
+                                                alt={game.save_data?.name}
+                                                style={{
+                                                    width: "100%",
+                                                    height: "150px",
+                                                    objectFit: "cover"
+                                                }}
+                                            />
+                                        )}
+
+                                        <div style={{ padding: "10px" }}>
+                                            <h3 style={{ margin: 0 }}>
+                                                {game.save_data?.name}
+                                            </h3>
+                                        </div>
+
+                                        {/* Remove button */}
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleRemoveGame(game.game_id);
                                             }}
-                                        />
-                                    )}
-                                    <div style={{ padding: "10px" }}>
-                                        <h3 style={{ margin: "0 0 5px 0" }}>
-                                            {game.save_data?.name || "Unnamed Game"}
-                                        </h3>
+                                            style={{
+                                                position: "absolute",
+                                                top: "10px",
+                                                right: "10px",
+                                                backgroundColor: "rgba(0,0,0,0.7)",
+                                                color: "white",
+                                                border: "none",
+                                                borderRadius: "4px",
+                                                padding: "5px 10px",
+                                                cursor: "pointer",
+                                                fontSize: "12px"
+                                            }}
+                                        >
+                                            Remove
+                                        </button>
                                     </div>
-                                </div>
-                                
-                                {/* Remove button */}
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleRemoveGame(game.game_id);
-                                    }}
-                                    style={{
-                                        position: "absolute",
-                                        top: "10px",
-                                        right: "10px",
-                                        backgroundColor: "rgba(0,0,0,0.7)",
-                                        color: "white",
-                                        border: "none",
-                                        borderRadius: "4px",
-                                        padding: "5px 10px",
-                                        cursor: "pointer",
-                                        fontSize: "12px"
-                                    }}
-                                >
-                                    Remove
-                                </button>
+                                ))}
                             </div>
-                        ))}
+                        )}
+                    </>
+                )}
+
+                {/* ------------------- REVIEWS TAB ------------------- */}
+                {activeTab === "reviews" && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "20px", paddingBottom: "40px" }}>
+                        {userReviews.length === 0 ? (
+                            <p style={{ color: "#aaa" }}>You haven't written any reviews yet.</p>
+                        ) : (
+                            userReviews.map((review) => (
+                                <ReviewCard
+                                    key={review.id}
+                                    review={review}
+                                    isUserReview={true}
+                                    userId={user.id}
+                                    gameId={review.game_id}
+                                    onReviewChange={() => window.location.reload()}
+                                    showGameInfo={true}
+                                    gameData={review.gameData}
+                                />
+                            ))
+                        )}
                     </div>
                 )}
+
             </div>
         </div>
     );

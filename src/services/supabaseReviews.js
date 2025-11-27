@@ -38,6 +38,21 @@ export const getReviewsByGame = async (gameId) => {
     return data;
 };
 
+// get reviews from a user
+export async function getReviewsByUser(userId) {
+    const { data, error } = await supabase
+        .from("reviews")
+        .select(`
+            *,
+            profiles (*)
+        `)
+        .eq("user_id", userId);
+
+    if (error) throw error;
+    return data;
+}
+
+
 // Update a review
 export const updateReview = async (userId, gameId, rating, reviewText) => {
     const { data, error } = await supabase
