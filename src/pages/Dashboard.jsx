@@ -4,6 +4,23 @@ import { useNavigate , useSearchParams } from "react-router-dom";
 import Navbar from "../components/NavBar";
 
 export default function Dashboard() {
+    const buttonStyle = (active) => ({
+        padding: "8px 12px",
+        borderRadius: "5px",
+        backgroundColor: active ? "#555" : "#1f2a38",
+        color: "white",
+        cursor: active ? "not-allowed" : "pointer",
+    });
+
+    const pageButtonStyle = (p) => ({
+        padding: "8px 12px",
+        borderRadius: "5px",
+        backgroundColor: page === p ? "#3b82f6" : "#1f2a38",
+        color: page === p ? "white" : "#ccc",
+        fontWeight: page === p ? "bold" : "normal",
+        cursor: "pointer",
+    });
+
     const [games, setGames] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -117,21 +134,24 @@ export default function Dashboard() {
             </div>
 
             <br />
-            <div style={{ marginBottom: "20px" }}>
-            <button onClick={handlePrev} disabled={page === 1}>
-                Prev
-            </button>
+            <div style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: "5px",
+                flexWrap: "wrap",
+                marginTop: "20px",
+                overflowX: "auto",
+                padding: "10px 0",
+            }}>
+
+            <button onClick={() => setPage(1)} disabled={page === 1} style={buttonStyle(page === 1)}>First</button>
+
+            <button onClick={handlePrev} disabled={page === 1} style={buttonStyle(page === 1)}>Prev</button>
 
             {getPageNumbers().map((p) => (
-                <button
-                key={p}
-                onClick={() => setPage(p)}
-                style={{
-                    margin: "0 3px",
-                    fontWeight: page === p ? "bold" : "normal",
-                }}
-                >
-                {p}
+                <button key={p} onClick={() => setPage(p)} style={pageButtonStyle(p)}>
+                    {p}
                 </button>
             ))}
 
@@ -140,11 +160,12 @@ export default function Dashboard() {
                 <span style={{ margin: "0 5px" }}>...</span>
                 )}
 
-            <button onClick={handleNext} disabled={page === totalPages}>
-                Next
-            </button>
+            <button onClick={handleNext} disabled={page === totalPages} style={buttonStyle(page === totalPages)}>Next</button>
+
+            <button onClick={() => setPage(totalPages)} disabled={page === totalPages} style={buttonStyle(page === totalPages)}>Last</button>
+
             </div>
         </div>
         </div>
     );
-    }
+}
