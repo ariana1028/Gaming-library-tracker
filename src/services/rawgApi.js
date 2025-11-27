@@ -38,11 +38,3 @@ export const getGameDetails = async (id) => {
         throw err;
     }
 }
-
-export const filterByPlatform = async (platform) => {
-
-}
-
-export const filterByGenre = async (genre) => {
-
-}

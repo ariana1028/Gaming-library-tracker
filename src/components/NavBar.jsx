@@ -60,8 +60,11 @@ export default function Navbar() {
         justifyContent: 'space-between',
         alignItems: 'center'
     }}>
-        <Link to="/p79" style={{ color: 'white', textDecoration: 'none', fontWeight: 'bold', fontSize: '20px' }}>
-        Gaming Library Tracker
+        <Link 
+            to={user ? "/p79/dashboard" : "/p79"} 
+            style={{ color: 'white', textDecoration: 'none', fontWeight: 'bold', fontSize: '20px' }}
+        >
+            Gaming Library Tracker
         </Link>
 
         <div style={{ display: 'flex', gap: '25px', fontSize: '18px', alignItems: "center" }}>
