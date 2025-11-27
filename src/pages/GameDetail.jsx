@@ -2,8 +2,8 @@ import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { getGameDetails } from "../services/rawgApi";
 import Navbar from "../components/NavBar";
-import { saveGame, getSavedGames } from "../services/supabaseGames";
-import { addReview, getReviewsByGame } from "../services/supabaseReviews";
+import { saveGame, getSavedGames, deleteSavedGame } from "../services/supabaseGames";
+import { addReview, getReviewsByGame, deleteReview } from "../services/supabaseReviews";
 import { supabase } from "../services/supabaseClient";
 import ReviewCard from "../components/ReviewCard";
 
@@ -184,6 +184,26 @@ export default function GameDetail() {
         }
     };
 
+    const handleRemoveGame = async () => {
+        if (!user) return;
+        
+        try {
+            await deleteSavedGame(user.id, Number(game.id));
+            await deleteReview(user.id, Number(game.id));
+            
+            setIsSaved(false);
+            setSavedGameData(null);
+            setEditStatus("");
+            setEditHours("");
+            
+            // Reload reviews to remove user's review from the list
+            await loadReviews();
+        } catch (err) {
+            console.error("Error removing game:", err);
+            alert("Failed to remove game");
+        }
+    };
+
     const handleUpdateStatus = async () => {
         if (!user) return;
         
@@ -259,19 +279,28 @@ export default function GameDetail() {
                     style={{ width: "250px", height: "300px", objectFit: "cover", objectPosition: "center", borderRadius: "8px", backgroundColor: "#222" }} 
                 />
                 <button
-                onClick={() => setShowModal(true)}
-                disabled={!user || isSaved}
-                style={{
-                    padding: "8px 16px",
-                    borderRadius: "6px",
-                    border: "none",
-                    cursor: user ? "pointer" : "not-allowed",
-                    backgroundColor: isSaved ? "#4db8ff" : "#222",
-                    color: isSaved ? "white" : "#4db8ff",
-                    fontWeight: "bold",
-                }}
+                    onClick={() => {
+                        if (isSaved) {
+                            // Handle remove logic
+                            if (window.confirm("This will remove the game from your library and delete your review. Are you sure?")) {
+                                handleRemoveGame();
+                            }
+                        } else {
+                            setShowModal(true);
+                        }
+                    }}
+                    disabled={!user}
+                    style={{
+                        padding: "8px 16px",
+                        borderRadius: "6px",
+                        border: "none",
+                        cursor: user ? "pointer" : "not-allowed",
+                        backgroundColor: isSaved ? "#4db8ff" : "#222",
+                        color: isSaved ? "#fff" : "#4db8ff",
+                        fontWeight: "bold",
+                    }}
                 >
-                {user ? (isSaved ? "Saved" : "Save Game") : "Log in to save game"}
+                    {!user ? "Log in to save game" : (isSaved ? "Remove" : "Save Game")}
                 </button>
 
                 {/* Rating under image */}
@@ -441,7 +470,7 @@ export default function GameDetail() {
                                         backgroundColor: "#1a2332",
                                         padding: "20px",
                                         borderRadius: "8px",
-                                        border: "2px dashed #4db8ff",
+                                        border: "1px solid rgba(255,255,255,0.05)",
                                         textAlign: "center"
                                     }}
                                 >

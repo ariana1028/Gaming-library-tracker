@@ -107,7 +107,7 @@ export default function Navbar() {
                         <button
                             onClick={handleLogout}
                             style={{
-                                backgroundColor: "#3d9ad7",
+                                backgroundColor: "#4db8ff",
                                 color: "white",
                                 border: "none",
                                 padding: "5px 10px",
