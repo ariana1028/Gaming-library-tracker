@@ -91,7 +91,7 @@ export default function Signup() {
             />
             <button type="submit" style={buttonStyle}>Sign Up</button>
             </form>
-            <p>{message}</p>
+            <p style={{ color: "#ff6b6b" }}>{message}</p>
         </div>
         </div>
     );
