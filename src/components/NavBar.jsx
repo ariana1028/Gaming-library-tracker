@@ -7,15 +7,31 @@ export default function Navbar() {
     const [user, setUser] = useState(null);
     const navigate = useNavigate();
 
+    const [profile, setProfile] = useState(null);
+
     useEffect(() => {
         const getUser = async () => {
             const {data} = await supabase.auth.getUser();
-            setUser(data?.user || null);
+            const currentUser = data?.user || null;
+            setUser(currentUser);
+
+            if (currentUser) {
+                const { data: profileData } = await supabase
+                    .from("profiles")
+                    .select("*")
+                    .eq("id", currentUser.id)
+                    .single();
+                
+                if (profileData) {
+                    setProfile(profileData);
+                }
+            }
         };
         getUser();
 
         const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
             setUser(session?.user || null);
+            if (!session?.user) setProfile(null);
         });
 
         return () => {
@@ -66,7 +82,7 @@ export default function Navbar() {
                                     width: "35px",
                                     height: "35px",
                                     borderRadius: "50%",
-                                    backgroundColor: "#3d9ad7",
+                                    backgroundColor: profile?.avatar_color || "#3d9ad7",
                                     display: "flex",
                                     justifyContent: "center",
                                     alignItems: "center",

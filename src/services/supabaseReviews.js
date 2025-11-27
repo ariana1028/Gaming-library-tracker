@@ -4,10 +4,23 @@ import { supabase } from "./supabaseClient";
 export const addReview = async (userId, gameId, rating, reviewText) => {
     const { data, error } = await supabase
         .from("reviews")
-        .insert([{ user_id: userId, game_id: gameId, rating, review_text: reviewText }], {
-        onConflict: ["user_id", "game_id"],
-        });
-    if (error) throw error;
+        .upsert(
+            { 
+                user_id: userId, 
+                game_id: gameId.toString(), 
+                rating, 
+                review_text: reviewText 
+            },
+            { 
+                onConflict: 'user_id,game_id'
+            }
+        )
+        .select();
+    
+    if (error) {
+        console.error("addReview error:", error);
+        throw error;
+    }
     return data;
 };
 
@@ -15,8 +28,12 @@ export const addReview = async (userId, gameId, rating, reviewText) => {
 export const getReviewsByGame = async (gameId) => {
     const { data, error } = await supabase
         .from("reviews")
-        .select(`*, profiles!inner(username, avatar_color, avatar_url)`)
-        .eq("game_id", gameId);
+        .select(`
+            *,
+            profiles!reviews_user_id_fkey (username, avatar_color)
+        `)
+        .eq("game_id", gameId.toString());
+    
     if (error) throw error;
     return data;
 };
@@ -27,7 +44,9 @@ export const updateReview = async (userId, gameId, rating, reviewText) => {
         .from("reviews")
         .update({ rating, review_text: reviewText })
         .eq("user_id", userId)
-        .eq("game_id", gameId);
+        .eq("game_id", gameId.toString())
+        .select();
+
     if (error) throw error;
     return data;
 };
@@ -38,7 +57,7 @@ export const deleteReview = async (userId, gameId) => {
         .from("reviews")
         .delete()
         .eq("user_id", userId)
-        .eq("game_id", gameId);
+        .eq("game_id", gameId.toString());
     if (error) throw error;
     return data;
 };

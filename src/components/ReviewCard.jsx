@@ -146,7 +146,7 @@ export default function ReviewCard({
                     width: "50px",
                     height: "50px",
                     borderRadius: "50%",
-                    backgroundColor: "#3d9ad7",
+                    backgroundColor: review.profiles?.avatar_color || "#3d9ad7",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",

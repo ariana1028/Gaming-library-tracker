@@ -11,15 +11,31 @@ export default function Profile() {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
+    const [profile, setProfile] = useState(null);
+
     useEffect(() => {
         const getUser = async () => {
             const { data } = await supabase.auth.getUser();
-            setUser(data?.user || null);
+            const currentUser = data?.user || null;
+            setUser(currentUser);
+
+            if (currentUser) {
+                const { data: profileData } = await supabase
+                    .from("profiles")
+                    .select("*")
+                    .eq("id", currentUser.id)
+                    .single();
+                
+                if (profileData) {
+                    setProfile(profileData);
+                }
+            }
         };
         getUser();
 
         const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
             setUser(session?.user || null);
+            if (!session?.user) setProfile(null);
         });
 
         return () => {
@@ -93,7 +109,7 @@ export default function Profile() {
                             alignItems: "center",
                             fontWeight: "bold",
                             fontSize: "48px",
-                            backgroundColor: "#3d9ad7",
+                            backgroundColor: profile?.avatar_color || "#3d9ad7" ,
                             textTransform: "uppercase",
                             flexShrink: 0
                         }}

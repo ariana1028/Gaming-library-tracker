@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { signUpUser } from "../services/authService";
 import Navbar from "../components/NavBar";
+import { useNavigate } from "react-router-dom";
 
 const inputStyle = {
     display: "block",
@@ -28,6 +29,7 @@ export default function Signup() {
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [message, setMessage] = useState("");
+    const navigate = useNavigate();
 
     const handleSignup = async (e) => {
         e.preventDefault();
@@ -39,11 +41,11 @@ export default function Signup() {
 
         try {
         await signUpUser(email, username, password);
-        setMessage("Check your email to confirm your account!");
         setEmail("");
         setUsername("");
         setPassword("");
         setConfirmPassword("");
+        navigate("/p79/dashboard");
         } catch (err) {
         setMessage(err.message);
         }
