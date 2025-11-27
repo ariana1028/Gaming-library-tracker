@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { updateReview, deleteReview } from "../services/supabaseReviews";
+import { useNavigate } from "react-router-dom";
 
 const inputStyle = {
     display: "block",
@@ -24,6 +25,8 @@ export default function ReviewCard({
     const [editRating, setEditRating] = useState(review.rating.toString());
     const [editText, setEditText] = useState(review.review_text || "");
     const [isUpdating, setIsUpdating] = useState(false);
+
+    const navigate = useNavigate();
 
     const handleSaveEdit = async () => {
         if (!editRating) {
@@ -137,7 +140,17 @@ export default function ReviewCard({
                         {review.profiles?.username || "Anonymous"}
 
                         {gameData?.name && (
-                            <span style={{ color: "#4db8ff", marginLeft: "8px", fontWeight: "normal" }}>
+                            <span 
+                                onClick={() => navigate(`/p79/gamedetail/${gameId}`)}
+                                style={{ 
+                                    color: "#4db8ff", 
+                                    marginLeft: "8px", 
+                                    fontWeight: "normal",
+                                    cursor: "pointer"
+                                }}
+                                onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
+                                onMouseLeave={(e) => e.target.style.textDecoration = "none"}
+                            >
                                 • {gameData.name}
                             </span>
                         )}

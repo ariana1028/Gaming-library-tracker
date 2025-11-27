@@ -237,20 +237,52 @@ export default function Profile() {
             {/* Main Section */}
             <div style={{ padding: "0 60px" }}>
 
-                {/* Header with custom dropdown */}
+                {/* Header with tabs */}
                 <div
                     style={{
                         backgroundColor: "#2a3a4a",
-                        padding: "15px 20px",
+                        padding: "0px",
                         marginTop: "40px",
                         marginBottom: "30px",
-                        borderRadius: "4px"
+                        borderRadius: "4px",
+                        display: "flex"
                     }}
                 >
-                <div style={{ display: "flex", justifyContent: "flex-start" }}>
-                        <HeaderDropdown activeTab={activeTab} setActiveTab={setActiveTab} />
-                </div>                
-            </div>
+                    <div
+                        onClick={() => setActiveTab("games")}
+                        style={{
+                            flex: 1,
+                            padding: "15px 20px",
+                            cursor: "pointer",
+                            backgroundColor: activeTab === "games" ? "#4db8ff" : "transparent",
+                            color: activeTab === "games" ? "white" : "#ccc",
+                            borderRadius: "4px 0 0 4px",
+                            textAlign: "center",
+                            fontSize: "18px",
+                            fontWeight: activeTab === "games" ? "bold" : "normal",
+                            transition: "all 0.2s ease"
+                        }}
+                    >
+                        Saved Games
+                    </div>
+                    <div
+                        onClick={() => setActiveTab("reviews")}
+                        style={{
+                            flex: 1,
+                            padding: "15px 20px",
+                            cursor: "pointer",
+                            backgroundColor: activeTab === "reviews" ? "#4db8ff" : "transparent",
+                            color: activeTab === "reviews" ? "white" : "#ccc",
+                            borderRadius: "0 4px 4px 0",
+                            textAlign: "center",
+                            fontSize: "18px",
+                            fontWeight: activeTab === "reviews" ? "bold" : "normal",
+                            transition: "all 0.2s ease"
+                        }}
+                    >
+                        Your Reviews
+                    </div>
+                </div>
 
                 {/* ------------------- GAMES TAB ------------------- */}
                 {activeTab === "games" && (
@@ -294,7 +326,7 @@ export default function Profile() {
                                         )}
 
                                         <div style={{ padding: "10px" }}>
-                                            <h3 style={{ margin: 0 }}>
+                                            <h3 style={{ margin: 0, fontSize: "20px" }}>
                                                 {game.save_data?.name}
                                             </h3>
                                         </div>
