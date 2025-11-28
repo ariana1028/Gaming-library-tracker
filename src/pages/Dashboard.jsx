@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { fetchGames, searchGames } from "../services/rawgApi";
 import { useNavigate , useSearchParams } from "react-router-dom";
 import Navbar from "../components/NavBar";
+import GameCard from "../components/GameCard";
 
 export default function Dashboard() {
     const buttonStyle = (active) => ({
@@ -85,6 +86,7 @@ export default function Dashboard() {
 
     if (loading) return (
         <div style={{ backgroundColor: "#0b1b2b", color: "white", minHeight: "100vh", padding: "10px"}}>
+            <Navbar />
         <p>Loading games...</p>
         </div>
     )
@@ -92,80 +94,56 @@ export default function Dashboard() {
 
     return (
         <div style={{ backgroundColor: "#0b1b2b", minHeight: "100vh", color: "white"}}>
-        <Navbar />
+            <Navbar />
 
-        <div style={{ padding: "20px", paddingBottom: "10px"}}>
-            <h1>Game Dashboard</h1>
-            <div style={{paddingTop: "10px"}}>
-            <p>Total games: {totalGames.toLocaleString()}</p>
-            </div>
+            <div style={{ padding: "20px", paddingBottom: "10px"}}>
+                <h1>Game Dashboard</h1>
+                <div style={{paddingTop: "10px"}}>
+                    <p>Total games: {totalGames.toLocaleString()}</p>
+                </div>
 
-            <div
-            style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                gap: "20px",
-            }}
-            >
-            {games.map((game) => (
                 <div
-                key={game.id}
-                onClick={() => navigate(`/p79/gamedetail/${game.id}`)}
-                style={{
-                    border: "1px solid #ccc",
-                    borderRadius: "8px",
-                    overflow: "hidden",
-                    boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
-                    backgroundColor: "#142236",
-                }}
+                    style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                        gap: "20px",
+                    }}
                 >
-                {game.background_image && (
-                    <img
-                    src={game.background_image}
-                    alt={game.name}
-                    style={{ width: "100%", height: "150px", objectFit: "cover" }}
-                    />
-                )}
-                <div style={{ padding: "10px" }}>
-                    <h3 style={{ margin: "0 0 5px 0", fontSize: "20px" }}>{game.name}</h3>
+                    {games.map((game) => (
+                        <GameCard key={game.id} game={game} />
+                    ))}
                 </div>
+
+                <div style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: "5px",
+                    flexWrap: "wrap",
+                    marginTop: "20px",
+                    overflowX: "auto",
+                    padding: "10px 0",
+                }}>
+                    <button onClick={() => setPage(1)} disabled={page === 1} style={buttonStyle(page === 1)}>First</button>
+
+                    <button onClick={handlePrev} disabled={page === 1} style={buttonStyle(page === 1)}>Prev</button>
+
+                    {getPageNumbers().map((p) => (
+                        <button key={p} onClick={() => setPage(p)} style={pageButtonStyle(p)}>
+                            {p}
+                        </button>
+                    ))}
+
+                    {totalPages > maxButtons &&
+                        page < totalPages - Math.floor(maxButtons / 2) && (
+                        <span style={{ margin: "0 5px" }}>...</span>
+                    )}
+
+                    <button onClick={handleNext} disabled={page === totalPages} style={buttonStyle(page === totalPages)}>Next</button>
+
+                    <button onClick={() => setPage(totalPages)} disabled={page === totalPages} style={buttonStyle(page === totalPages)}>Last</button>
                 </div>
-            ))}
             </div>
-
-            <br />
-            <div style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: "5px",
-                flexWrap: "wrap",
-                marginTop: "20px",
-                overflowX: "auto",
-                padding: "10px 0",
-            }}>
-
-            <button onClick={() => setPage(1)} disabled={page === 1} style={buttonStyle(page === 1)}>First</button>
-
-            <button onClick={handlePrev} disabled={page === 1} style={buttonStyle(page === 1)}>Prev</button>
-
-            {getPageNumbers().map((p) => (
-                <button key={p} onClick={() => setPage(p)} style={pageButtonStyle(p)}>
-                    {p}
-                </button>
-            ))}
-
-            {totalPages > maxButtons &&
-                page < totalPages - Math.floor(maxButtons / 2) && (
-                <span style={{ margin: "0 5px" }}>...</span>
-                )}
-
-            <button onClick={handleNext} disabled={page === totalPages} style={buttonStyle(page === totalPages)}>Next</button>
-
-            <button onClick={() => setPage(totalPages)} disabled={page === totalPages} style={buttonStyle(page === totalPages)}>Last</button>
-
-            </div>
-        </div>
         </div>
     );
 }
