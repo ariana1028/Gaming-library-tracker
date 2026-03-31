@@ -52,7 +52,7 @@ export default function Signup() {
             setUsername("");
             setPassword("");
             setConfirmPassword("");
-            navigate("/p79/dashboard");
+            navigate("/dashboard");
         } catch (err) {
             setMessage(err.message);
         }

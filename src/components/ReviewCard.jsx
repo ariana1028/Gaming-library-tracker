@@ -141,7 +141,7 @@ export default function ReviewCard({
 
                         {gameData?.name && (
                             <span 
-                                onClick={() => navigate(`/p79/gamedetail/${gameId}`)}
+                                onClick={() => navigate(`/Gaming-library-tracker/gamedetail/${gameId}`)}
                                 style={{ 
                                     color: "#4db8ff", 
                                     marginLeft: "8px", 

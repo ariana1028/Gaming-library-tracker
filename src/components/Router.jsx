@@ -11,7 +11,7 @@ export default function Router() {
     return (
     <BrowserRouter>
         <Routes>
-            <Route path="/p79">
+            <Route path="/Gaming-library-tracker">
                 <Route index element={<HomePage />} />
                 <Route path="login" element={<Login />} />
                 <Route path="signup" element={<SignUp />} />

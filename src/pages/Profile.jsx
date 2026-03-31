@@ -311,7 +311,7 @@ export default function Profile() {
                                             position: "relative",
                                             cursor: "pointer"
                                         }}
-                                        onClick={() => navigate(`/p79/gamedetail/${game.game_id}`)}
+                                        onClick={() => navigate(`/gamedetail/${game.game_id}`)}
                                     >
                                         {game.save_data?.image && (
                                             <img

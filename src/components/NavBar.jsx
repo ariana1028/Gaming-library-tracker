@@ -42,13 +42,13 @@ export default function Navbar() {
     const handleLogout = async () => {
         await supabase.auth.signOut();
         setUser(null);
-        navigate("/p79");
+        navigate("/Gaming-library-trackerGaming-library-tracker");
     };
 
     const handleSearch = (e) => {
         e.preventDefault();
         if (searchTerm.trim()) {
-            navigate(`/p79/dashboard?search=${encodeURIComponent(searchTerm.trim())}`);
+            navigate(`/Gaming-library-tracker/dashboard?search=${encodeURIComponent(searchTerm.trim())}`);
         }
     };
 
@@ -61,7 +61,7 @@ export default function Navbar() {
         alignItems: 'center'
     }}>
         <Link 
-            to={user ? "/p79/dashboard" : "/p79"} 
+            to={user ? "/Gaming-library-tracker/dashboard" : "/Gaming-library-tracker"} 
             style={{ color: 'white', textDecoration: 'none', fontWeight: 'bold', fontSize: '20px' }}
         >
             Gaming Library Tracker
@@ -70,7 +70,7 @@ export default function Navbar() {
         <div style={{ display: 'flex', gap: '25px', fontSize: '18px', alignItems: "center" }}>
             {user ? (<div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
                         <div
-                            onClick={() => navigate("/p79/profile")}
+                            onClick={() => navigate("/Gaming-library-tracker/profile")}
                             style={{
                                 display: "flex",
                                 alignItems: "center",
@@ -126,13 +126,13 @@ export default function Navbar() {
                     // Not logged in: show login/signup
                     <>
                         <Link
-                            to="/p79/login"
+                            to="/Gaming-library-tracker/login"
                             style={{ color: "white", textDecoration: "none" }}
                         >
                             Log in
                         </Link>
                         <Link
-                            to="/p79/signup"
+                            to="/Gaming-library-tracker/signup"
                             style={{ color: "white", textDecoration: "none" }}
                         >
                             Sign up

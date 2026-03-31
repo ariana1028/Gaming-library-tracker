@@ -5,7 +5,7 @@ export default function GameCard({ game }) {
 
     return (
         <div
-            onClick={() => navigate(`/p79/gamedetail/${game.id}`)}
+            onClick={() => navigate(`/Gaming-library-tracker/gamedetail/${game.id}`)}
             style={{
                 border: "1px solid #ccc",
                 borderRadius: "8px",

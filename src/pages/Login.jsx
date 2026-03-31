@@ -40,7 +40,7 @@ export default function Login() {
         e.preventDefault();
         try {
             await signInUser(email, password);
-            navigate("/p79/dashboard");
+            navigate("/dashboard");
         } catch (err) {
             setMessage(err.message);
         }
